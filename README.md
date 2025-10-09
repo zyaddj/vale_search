@@ -79,8 +79,8 @@ flowchart TD
 ### Installation
 
 ```bash
-git clone https://github.com/valesystems/valesearch.git
-cd valesearch
+git clone https://github.com/zyaddj/vale_search.git
+cd vale_search
 pip install -r requirements.txt
 ```
 
@@ -255,8 +255,8 @@ python examples/benchmark.py --queries 1000 --concurrency 10
 
 ### Ways to Contribute
 
-- 🐛 **Bug Reports**: [Create an issue](https://github.com/valesystems/valesearch/issues)
-- 💡 **Feature Requests**: [Start a discussion](https://github.com/valesystems/valesearch/discussions)
+- 🐛 **Bug Reports**: [Create an issue](https://github.com/zyaddj/vale_search/issues)
+- 💡 **Feature Requests**: [Start a discussion](https://github.com/zyaddj/vale_search/discussions)
 - 🔀 **Pull Requests**: See [CONTRIBUTING.md](CONTRIBUTING.md)
 - 📖 **Documentation**: Help improve our guides
 
@@ -298,9 +298,7 @@ gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.main:app
 ## 🔗 Links
 
 - **[Documentation](docs/)** - Complete API reference
-- **[Vale Enterprise](https://valesystems.ai)** - Managed hosting & enterprise features
-- **[Discord Community](https://discord.gg/valesearch)** - Get help and connect
-- **[Twitter](https://twitter.com/valesystems)** - Latest updates
+- **[Vale Solutions](https://valesolutions.net)** - Official website
 
 ---
 
@@ -313,8 +311,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 💬 Support
 
 - **GitHub Issues**: Bug reports and feature requests
-- **Discord**: Real-time community support  
-- **Email**: opensource@valesystems.ai
+- **Email**: zyaddj@valesolutions.net
+- **Website**: [valesolutions.net](https://valesolutions.net)
 
 ---
 

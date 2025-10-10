@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from .api.routes import router
 from .api import routes
 from .retrieval.hybrid_engine import HybridEngine
+from .cache.cleanup_service import CacheCleanupService
 from .utils.logger import get_logger, configure_logging
 
 # Load environment variables
@@ -33,6 +34,7 @@ logger = get_logger(__name__)
 
 # Global engine instance
 engine_instance: HybridEngine = None
+cleanup_service: CacheCleanupService = None
 
 
 @asynccontextmanager
@@ -75,6 +77,20 @@ async def lifespan(app: FastAPI):
         
         logger.info("ValeSearch engine initialized successfully")
         
+        # Initialize and start cache cleanup service
+        global cleanup_service
+        cleanup_service = CacheCleanupService(
+            cache_manager=engine_instance.cache_manager,
+            cleanup_interval_hours=int(os.getenv("CACHE_CLEANUP_INTERVAL_HOURS", "6")),
+            max_age_days=int(os.getenv("CACHE_MAX_AGE_DAYS", "7")),
+            min_access_count=int(os.getenv("CACHE_MIN_ACCESS_COUNT", "2")),
+            keep_if_accessed_days=int(os.getenv("CACHE_KEEP_IF_ACCESSED_DAYS", "3"))
+        )
+        
+        # Start background cleanup service
+        await cleanup_service.start()
+        logger.info("Cache cleanup service started")
+        
         # Perform health check
         health = await engine_instance.health_check()
         if health["status"] != "healthy":
@@ -92,6 +108,12 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down ValeSearch application...")
     
     try:
+        # Stop cleanup service first
+        if cleanup_service:
+            await cleanup_service.stop()
+            logger.info("Cache cleanup service stopped")
+        
+        # Then close the engine
         if engine_instance:
             await engine_instance.close()
         logger.info("ValeSearch shutdown completed")

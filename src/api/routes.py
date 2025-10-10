@@ -191,6 +191,116 @@ async def get_cache_stats(engine: HybridEngine = Depends(get_engine)) -> CacheSt
         )
 
 
+@router.post("/cache/cleanup")
+async def cleanup_cache(
+    max_age_days: int = 7,
+    min_access_count: int = 2,
+    keep_if_accessed_days: int = 3,
+    engine: HybridEngine = Depends(get_engine)
+) -> Dict[str, Any]:
+    """
+    Clean up old and unused cache entries using intelligent LRU strategy.
+    
+    Args:
+        max_age_days: Maximum age for cache entries (default: 7)
+        min_access_count: Minimum access count to keep old entries (default: 2)
+        keep_if_accessed_days: Keep if accessed within this many days (default: 3)
+    """
+    try:
+        cleanup_stats = await engine.cache_manager.cleanup_unused_cache(
+            max_age_days=max_age_days,
+            min_access_count=min_access_count,
+            keep_if_accessed_days=keep_if_accessed_days
+        )
+        
+        return {
+            "success": True,
+            "message": "Cache cleanup completed",
+            "stats": cleanup_stats,
+            "total_removed": cleanup_stats["removed_old_unused"] + cleanup_stats["removed_poor_quality"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Cache cleanup error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cache cleanup failed: {str(e)}"
+        )
+
+
+@router.get("/cache/health")
+async def get_cache_health(engine: HybridEngine = Depends(get_engine)) -> Dict[str, Any]:
+    """Get cache health metrics and recommendations."""
+    try:
+        stats = await engine.cache_manager.get_stats()
+        
+        # Calculate health score
+        health_score = 0.0
+        issues = []
+        recommendations = []
+        
+        # Hit rate health (should be >60%)
+        if stats.hit_rate > 0.7:
+            health_score += 30
+        elif stats.hit_rate > 0.5:
+            health_score += 20
+            issues.append("hit_rate_below_optimal")
+            recommendations.append("Consider lowering semantic similarity threshold")
+        else:
+            health_score += 10
+            issues.append("hit_rate_low")
+            recommendations.append("Analyze query patterns for cache warming opportunities")
+        
+        # Cache size health
+        cache_size = stats.cache_size
+        if 1000 <= cache_size <= 100000:
+            health_score += 25
+        else:
+            issues.append("cache_size_suboptimal")
+            if cache_size < 1000:
+                recommendations.append("Cache warming might improve performance")
+            else:
+                recommendations.append("Consider more aggressive cleanup policies")
+        
+        # Performance health
+        avg_latency = stats.avg_latency_ms
+        if avg_latency < 50:
+            health_score += 25
+        elif avg_latency < 100:
+            health_score += 15
+            issues.append("latency_above_optimal")
+            recommendations.append("Check Redis connection and performance")
+        else:
+            health_score += 5
+            issues.append("latency_high")
+            recommendations.append("Consider Redis optimization or hardware upgrade")
+        
+        # Quality health (if available)
+        health_score += 20  # Assume good quality for now
+        
+        status_text = "healthy" if health_score > 80 else "degraded" if health_score > 60 else "unhealthy"
+        
+        return {
+            "health_score": health_score,
+            "status": status_text,
+            "issues": issues,
+            "recommendations": recommendations,
+            "cache_stats": {
+                "hit_rate": stats.hit_rate,
+                "cache_size": stats.cache_size,
+                "avg_latency_ms": stats.avg_latency_ms,
+                "total_queries": stats.total_queries
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Cache health check error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cache health check failed: {str(e)}"
+        )
+
+
 @router.get("/stats", response_model=MetricsResponse)
 async def get_engine_stats(engine: HybridEngine = Depends(get_engine)) -> MetricsResponse:
     """Get comprehensive engine statistics and metrics."""

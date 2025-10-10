@@ -201,6 +201,45 @@ We cache **final LLM responses** rather than just retrieval context. Research sh
 4. **Vector search** (50-200ms) - Full embedding-based retrieval
 5. **Cache population** - Store result for future queries
 
+#### **🧠 Intelligent Cache Management**
+
+**Quality Gates:**
+- Only cache responses with confidence score ≥ 0.6
+- Filter out uncertain responses ("I don't know", etc.)
+- Validate answer length and content quality
+- Prevent cache pollution from poor responses
+
+**LRU-Based Cleanup:**
+- Remove entries older than 7 days AND accessed < 2 times
+- Keep frequently accessed entries (even if old)
+- Keep recently accessed entries (even if old)
+- Automatic cleanup every 6 hours via background service
+
+**Access Tracking:**
+- Track every cache hit with timestamps
+- Monitor access patterns for optimization
+- Generate usage analytics and recommendations
+
+**Health Monitoring:**
+```python
+# Check cache health
+GET /cache/health
+{
+  "health_score": 85,
+  "status": "healthy", 
+  "hit_rate": 0.73,
+  "recommendations": []
+}
+
+# Manual cleanup trigger
+POST /cache/cleanup
+{
+  "total_removed": 1247,
+  "kept_recently_accessed": 2891,
+  "kept_frequently_used": 1556
+}
+```
+
 ### Component 2: Hybrid Retrieval Engine 🚧
 *Coming soon - BM25 + Vector search with intelligent routing*
 
@@ -265,17 +304,24 @@ Create a `.env` file:
 ```bash
 # Redis Configuration
 REDIS_URL=redis://localhost:6379
-REDIS_TTL=86400
+CACHE_TTL=86400
+
+# Cache Management
+CACHE_CLEANUP_INTERVAL_HOURS=6    # How often to run cleanup
+CACHE_MAX_AGE_DAYS=7              # Max age for unused entries
+CACHE_MIN_ACCESS_COUNT=2          # Min access count to keep old entries
+CACHE_KEEP_IF_ACCESSED_DAYS=3     # Keep if accessed within N days
 
 # Vector Search
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-VECTOR_STORE=faiss
-SIMILARITY_THRESHOLD=0.85
+SEMANTIC_THRESHOLD=0.85
+ENABLE_SEMANTIC_CACHE=true
 
 # BM25 Settings
 BM25_K1=1.5
 BM25_B=0.75
-MIN_KEYWORD_QUERY_LENGTH=3
+BM25_MIN_SCORE=0.1
+SHORT_QUERY_MAX_WORDS=3
 
 # LLM Settings (for fallback)
 OPENAI_API_KEY=your_openai_key

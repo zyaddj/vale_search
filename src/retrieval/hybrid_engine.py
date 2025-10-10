@@ -128,9 +128,9 @@ class HybridEngine:
         
         logger.debug(f"Processing query: '{query[:100]}...'")
         
-        # Step 1: Check cache first
+        # Step 1: Check cache first (with access tracking)
         if use_cache:
-            cache_result = await self.cache_manager.get(query)
+            cache_result = await self.cache_manager.get_with_tracking(query)
             if cache_result.hit:
                 self._stats["cache_hits"] += 1
                 
@@ -175,17 +175,27 @@ class HybridEngine:
                 latency_ms=total_latency
             )
         
-        # Step 6: Cache the result for future use
+        # Step 6: Cache the result with quality check
         if use_cache and result.answer:
-            await self.cache_manager.set(
+            # Use quality-checked caching with source confidence score
+            source_score = getattr(result, 'score', result.confidence) if hasattr(result, 'score') else result.confidence
+            
+            cache_success = await self.cache_manager.set_with_quality_check(
                 query,
                 result.answer,
+                source_score=source_score,
                 metadata={
                     "source": result.source,
                     "confidence": result.confidence,
-                    "generated_at": time.time()
+                    "generated_at": time.time(),
+                    "search_method": result.source
                 }
             )
+            
+            if cache_success:
+                logger.debug(f"Cached response from {result.source} with quality check")
+            else:
+                logger.debug(f"Skipped caching response from {result.source} (quality too low)")
         
         # Update statistics
         total_latency = (time.time() - start_time) * 1000

@@ -30,6 +30,8 @@ class HybridResult:
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
+        if self.metadata is None:
+            self.metadata = {}
 
 
 class HybridEngine:
@@ -115,8 +117,6 @@ class HybridEngine:
         # Configuration
         self.short_query_max_words = short_query_max_words
         self.bm25_min_score = bm25_min_score
-        data_path: str = "data/documents.json",
-        short_query_max_words: int = 3,
         
         # Statistics tracking
         self._stats = {
@@ -124,7 +124,8 @@ class HybridEngine:
             "cache_hits": 0,
             "bm25_hits": 0,
             "fallback_calls": 0,
-            "total_latency": 0.0
+            "total_latency": 0.0,
+            "errors": 0
         }
         
         logger.info("HybridEngine initialized with plug-and-play fallback integration")

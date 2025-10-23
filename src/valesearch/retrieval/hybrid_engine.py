@@ -30,8 +30,6 @@ class HybridResult:
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
-        if self.metadata is None:
-            self.metadata = {}
 
 
 class HybridEngine:

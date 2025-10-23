@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include requirements.txt
+include pyproject.toml
+include docker-compose.yml
+recursive-include src/valesearch *.py
+recursive-include src/valesearch *.json
+recursive-include src/valesearch *.yaml
+recursive-include src/valesearch *.yml
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

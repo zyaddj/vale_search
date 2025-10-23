@@ -14,10 +14,10 @@ def read_requirements():
         return [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
 setup(
-    name="vale-search",
+    name="valesearch",
     version="0.1.0",
-    author="Vale Systems",
-    author_email="opensource@valesystems.ai",
+    author="Zyad Djouad",
+    author_email="zyaddj@valesolutions.net",
     description="The hybrid, cached retrieval engine for RAG systems - true drag-and-drop integration",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setup(
     
     # Dependencies
     python_requires=">=3.8",
-    install_requires=read_requirements(),
+    install_requires=read_requirements() + ["click>=8.0.0"],
     
     # Optional dependencies
     extras_require={
@@ -51,7 +51,7 @@ setup(
     # Entry points for CLI tools (if needed)
     entry_points={
         "console_scripts": [
-            "vale-search=vale_search.cli:main",  # Future CLI tool
+            "valesearch=valesearch.cli:main",  # Future CLI tool
         ],
     },
     
@@ -82,7 +82,7 @@ setup(
     # Include non-Python files
     include_package_data=True,
     package_data={
-        "vale_search": ["data/*.json", "configs/*.yaml"],
+        "valesearch": ["data/*.json", "configs/*.yaml"],
     },
     
     # Project URLs

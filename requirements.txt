@@ -17,6 +17,9 @@ numpy>=1.24.3
 nltk>=3.8.1
 spacy>=3.7.0
 
+# CLI Tool
+click>=8.0.0
+
 # LLM Integration
 openai==1.3.3
 anthropic==0.7.7

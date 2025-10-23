@@ -12,8 +12,8 @@ True drag-and-drop integration:
 """
 
 __version__ = "0.1.0"
-__author__ = "Vale Systems"
-__email__ = "opensource@valesystems.ai"
+__author__ = "Zyad Djouad"
+__email__ = "zyaddj@valesolutions.net"
 
 # Main unified API - this is what users import
 try:
